@@ -1,0 +1,61 @@
+version: '3.7'
+services:
+  tarantool:
+    build:
+      context: ./from_to_data/
+      dockerfile: Dockerfile
+    image: tarantool:v1
+    volumes:
+      - ./persistent/tarantool:/home/tarantool/data
+    environment:
+      - TARANTOOL_STORAGE_PATH=/tarantool
+      - MQTT_HOST=62.3.58.70
+      - MQTT_PORT=1883
+      - MQTT_CLEARSESSION=true
+      - MQTT_QOS=2
+      - MQTT_CLIENT_ID=Client1
+      - MQTT_LOGIN=Hans
+      - MQTT_PASSWORD=yHsa6W2IHAyNrcR5!0tE
+      - MQTT_TOPIC=s14
+    depends_on:
+      - clickhouse
+    links:
+      - clickhouse
+  clickhouse:
+    build:
+      context: ./clickhouse/
+      dockerfile: Dockerfile
+    image: clickhouse:v1
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    ports:
+      - 18123:8123
+      - 19000:9000
+    volumes:
+      - /home/obrol/clickhouse/src/persistent/data:/var/lib/clickhouse/
+      - /home/obrol/clickhouse/src/persistent/logs:/var/log/clickhouse-server/
+  select_tarantool:
+    build:
+      context: ./do_select/
+      dockerfile: Dockerfile
+    image: select_tarantool:v1
+    volumes:
+      - ./persistent/tarantool:/home/tarantool/data
+    environment:
+      - TARANTOOL_STORAGE_PATH=/tarantool
+      - MQTT_HOST=62.3.58.70
+      - MQTT_PORT=1883
+      - MQTT_CLEARSESSION=true
+      - MQTT_QOS=2
+      - MQTT_CLIENT_ID=Client1
+      - MQTT_LOGIN=Hans
+      - MQTT_PASSWORD=yHsa6W2IHAyNrcR5!0tE
+      - MQTT_TOPIC=s14
+    depends_on:
+      - clickhouse
+    links:
+      - clickhouse
+
+    
